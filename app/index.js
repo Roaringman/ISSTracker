@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 const request = require('request');
 
 const endpoint = "https://services.arcgis.com/LeHsdRPbeEIElrVR/ArcGIS/rest/services/ISS_track/FeatureServer/0";
-const token = "Qfn4joPLzVX7B4BM14ZErombpiKNRuOP2xxB16MkiUtx5Ltsy479_e3pyQ4GXbhOKqXqUHBO79VILPDuXSI9pY6swib-ov4GNNg-_vLmc6OGUPFGuy7YcbL07nvj7WSr7734f6wSAkPMf8yOgO5-e2IJIrW3lHmgXjTjwGx6W7wA6GWvMwsVp4kpjyPVnXSG0Zgt7tdn9tul14vcaxtcL4dq-PLS1VdDWqGBiCnRjuKAArbwpu6lZLPY_ymhMX-7Tqjoha5e5N-ZAxndg3K38Q..";
+const token = "T6Ymm-_BAlDGABe-W1p2-Z-i0fvwUcQCYM0uGED_ukVMWLMNU2SvJbu8W4ErSd-uo1vPYLkpGhLKx9rO3sIhxCm_oRTWGf2yGfQx7_4sY3qgKUDsLG7Oudl8tQI7o6Furc1_Sb8KJQnGyrgLGkEnwRSccCtbWcZa0JkKzMFU81VUz_GKI8bFbdPHoM5GLTuoMZuwNt1hpBJJ5e50lTuepS9QcF01pIJqBEntZUlvmbVhnM7L19kSzBx8xynErXDZmX61sBOk1M0YloC_Rc5eLQ..";
 const query = `${endpoint}/addFeatures?token=${token}`;
 const countQuery = `${endpoint}/query?where=1%3D1&returnCountOnly=true&f=pjson&token=${token}`;
 const updateQuery = `${endpoint}/updateFeatures?token=${token}`;
@@ -52,6 +52,7 @@ async function postData(query, token, endpoint){
   } else {
     console.log("Too many features, updating earliest record.")
     let featureId = await firstId(firstIdQuery);
+
     let id = featureId[0].attributes.OBJECTID;
 
     let updateFeature = JSON.stringify({
@@ -104,7 +105,6 @@ async function numberOfPositions(query){
 async function firstId(query){
   let idData = await fetch(query);
   let idInfo = await idData.json();
-
   return idInfo.features;
 }
 
