@@ -2,16 +2,18 @@ const fetch = require('node-fetch');
 const request = require('request');
 
 const endpoint = "https://services.arcgis.com/LeHsdRPbeEIElrVR/ArcGIS/rest/services/ISS_track/FeatureServer/0";
-const token = "T6Ymm-_BAlDGABe-W1p2-Z-i0fvwUcQCYM0uGED_ukVMWLMNU2SvJbu8W4ErSd-uo1vPYLkpGhLKx9rO3sIhxCm_oRTWGf2yGfQx7_4sY3qgKUDsLG7Oudl8tQI7o6Furc1_Sb8KJQnGyrgLGkEnwRSccCtbWcZa0JkKzMFU81VUz_GKI8bFbdPHoM5GLTuoMZuwNt1hpBJJ5e50lTuepS9QcF01pIJqBEntZUlvmbVhnM7L19kSzBx8xynErXDZmX61sBOk1M0YloC_Rc5eLQ..";
+const token = "Ma3eVnkzBuHfdGaBSwHlLduTgQSbb9Yd-f-mQvJssKddCd93HveK62BJfz70PwpFFsdLpSEf5DhdCzsqj2wICa5kc2KF21S3ZoARubExT9S_FzEUfhJTMt0JCdOqYGRRffN4_zH8rGue6oQnJt-Y3AST-m8xpAezHJhSQvmCHUq4guIsAkJG3RE34ssx7SYkXPBSPyTdB020bVRHvuuKjujKK1W_8FyyhsBP56s3yTFaTDPCWKzzI1SSpt3nfYyttGfEdNmwyyLNjge9YzbygQ..";
 const query = `${endpoint}/addFeatures?token=${token}`;
 const countQuery = `${endpoint}/query?where=1%3D1&returnCountOnly=true&f=pjson&token=${token}`;
 const updateQuery = `${endpoint}/updateFeatures?token=${token}`;
 const firstIdQuery = `${endpoint}/query?where=1+%3D+1&returnIdsOnly=false&orderByFields=time&groupByFieldsForStatistics=time&resultRecordCount=1&f=pjson&token=${token}`;
 
+//Inital call
+postData(query);
 //Function, interval(Miliseconds), function argument
-setInterval(postData, 20000, query, token, endpoint)
+setInterval(postData, 20000, query)
 
-async function postData(query, token, endpoint){
+async function postData(query){
   //GET THE ISS POSITION, CREATE HTTP FORM AND POST REQUEST TO ENDPOINT
   const formdata = {};
 
@@ -19,7 +21,7 @@ async function postData(query, token, endpoint){
   console.log(`There are currently ${featureCount} registered positions in the feature layer`)
 
   let data = await whereISSAt(); //Await location data promise
-  let feature = JSON.stringify({
+  let feature = {
     "attributes" : {
       "lat": data.latitude,
       "lon": data.longitude,
@@ -31,13 +33,14 @@ async function postData(query, token, endpoint){
         "y" : data.latitude,
         "x" : data.longitude
       }
-  })
+  }
 
   if(featureCount < 100) {
     formdata["f"] = "pjson";
     formdata["rollBackOnFailure"] = true;
     formdata["features"] = feature;
   
+
     request.post({url: query, form: formdata}, async function(err,httpResponse,body){ 
       if(err){console.log(err)}
       else{
@@ -74,17 +77,7 @@ async function postData(query, token, endpoint){
     formdata["rollBackOnFailure"] = true;
     formdata["features"] = updateFeature;
   
-    request.post({url: updateQuery, form: formdata}, async function(err,httpResponse,body){ 
-      if(err){console.log(err)}
-      else{
-        let response = JSON.parse(body)
-        if(response.error){
-          console.log(`Failed to post position. Error: ${response.error.details[0]}`)
-        } else {
-          console.log(`Features with id ${id} was updated with new attributes and geometry`)
-        }
-      }
-    }) 
+    formPoster(formdata);
   }
 }
 
@@ -115,3 +108,20 @@ async function nextPosition(query){
   return {"x": 0, "y": 0};
 }
 
+function formPoster(formdata, query) {
+  
+  let stringToPost = JSON.stringify(formdata);
+
+
+  request.post({url: updateQuery, form: stringToPost}, async function(err,httpResponse,body){ 
+    if(err){console.log(err)}
+    else{
+      let response = JSON.parse(body)
+      if(response.error){
+        console.log(`Failed to post position. Error: ${response.error.details[0]}`)
+      } else {
+        console.log(`Features with id ${formdata.attributes["OBJECTID"]} was updated with new attributes and geometry`)
+      }
+    }
+  }) 
+}
