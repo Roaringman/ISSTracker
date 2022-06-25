@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "formdata-node": "^1.8.1",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.7",
     "request": "^2.88.0"
   }
 }
